@@ -263,7 +263,7 @@ async function openArticle(item) {
     S.cur.article = {
       url: item.link, title: item.title || item.link, dek: item.summary || '', image: item.image || null,
       siteName: feedFor(item)?.title || host(item.link), author: item.author || '', published: item.published || null,
-      text: item.summary || '', textSource: 'excerpt', previewOnly: true,
+      text: item.summary || '', textSource: 'excerpt', previewOnly: false, unreadable: true,
     }
   }
   S.cur.loading = false
@@ -305,7 +305,7 @@ function renderStory() {
       <span class="lbl">${esc(a.siteName || host(a.url))}${byline ? ` · ${esc(byline)}` : ''}</span>
       <h1>${esc(a.title)}</h1>
       ${a.dek ? `<p class="dek">${esc(a.dek)}</p>` : ''}
-      <p class="story-links"><a href="${esc(a.url)}" target="_blank" rel="noopener">Open the article ↗</a>${error ? `<span class="warn-txt">Couldn't read the page (${esc(error)}). Using the feed's summary.</span>` : ''}</p>
+      <p class="story-links"><a href="${esc(a.url)}" target="_blank" rel="noopener">Open the article ↗</a>${error ? `<span class="warn-txt">Couldn't load the page: ${esc(error)}. Using the feed's summary. <button class="link" type="button" id="retry-article">Try again</button></span>` : ''}</p>
     </div>`
 }
 
@@ -364,7 +364,9 @@ function renderFullText() {
   $('#fulltext').innerHTML = `
     <div class="ft${warn ? ' warn' : ''}">
       <p>${warn
-        ? `<b>Only ${fmt(len)} characters are public.</b> ${a.previewOnly ? 'This story looks paywalled, so the AI only sees the free preview.' : 'The AI only has a short excerpt to work from.'} Paste the full text for sharper ideas.`
+        ? a.unreadable
+          ? `<b>The article page didn't load</b>, so the AI only has the feed's ${fmt(len)}-character summary. Paste the full text for sharper ideas.`
+          : `<b>Only ${fmt(len)} characters are public.</b> ${a.previewOnly ? 'This story looks paywalled, so the AI only sees the free preview.' : 'The AI only has a short excerpt to work from.'} Paste the full text for sharper ideas.`
         : `The AI will read <b>${fmt(len)} characters</b> from ${esc(source)}.`}
         <button class="link" type="button" id="toggle-paste">${cur.showPaste ? 'Hide' : cur.fullText ? 'Edit pasted text' : 'Paste full text'}</button></p>
       ${cur.showPaste ? `<textarea id="paste" rows="7" placeholder="Paste the article's full text here. It's sent to the AI once and not stored.">${esc(cur.fullText)}</textarea>` : ''}
@@ -590,6 +592,9 @@ $('#posts').addEventListener('click', (e) => {
 })
 for (const id of ['#send-post', '#when', '#attach-image']) $(id).addEventListener('change', () => { if (S.cur) { S.cur.result = null; renderSendbar() } })
 
+$('#story').addEventListener('click', (e) => {
+  if (e.target.closest('#retry-article') && S.cur) openArticle(S.cur.item)
+})
 $('#fulltext').addEventListener('click', (e) => {
   if (!e.target.closest('#toggle-paste')) return
   S.cur.showPaste = !S.cur.showPaste

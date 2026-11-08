@@ -47,3 +47,10 @@ test('blocks private addresses and normalizes input', () => {
   assert.throws(() => normalizeUserUrl('ftp://x.com'))
   assert.throws(() => normalizeUserUrl('https://user:pw@x.com'))
 })
+
+test('photo captions inside the story are not read as body text', () => {
+  const html = `<html><body><article class="story"><div id="storytext"><div class="bucketwrap image"><div class="caption"><p>${'A long photo caption describing the people in line for a meal. '.repeat(2)}</p></div></div>${para(3)}${para(5)}</div></article></body></html>`
+  const a = extractArticle(html, 'https://www.npr.org/x')
+  assert.ok(!a.text.includes('photo caption'))
+  assert.ok(a.text.length > 300)
+})
