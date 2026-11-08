@@ -54,3 +54,20 @@ test('photo captions inside the story are not read as body text', () => {
   assert.ok(!a.text.includes('photo caption'))
   assert.ok(a.text.length > 300)
 })
+
+test('NPR falls back to its text edition when the main page fails', async () => {
+  const { loadArticle, textEditionFor } = await import('../lib/article.js')
+  const url = 'https://www.npr.org/2026/11/07/nx-s1-6033491/homelessness-drop'
+  assert.equal(textEditionFor(url), 'https://text.npr.org/nx-s1-6033491')
+  assert.equal(textEditionFor('https://example.com/a'), null)
+  const fetcher = async (u) => {
+    if (String(u).startsWith('https://www.npr.org')) throw new Error('timeout')
+    return { url: String(u), text: `<html><body><article>${para(3)}${para(5)}</article></body></html>` }
+  }
+  const a = await loadArticle(url, { title: 'Homelessness drops', summary: 'Short', image: 'https://media.npr.org/x.jpg' }, { fetcher })
+  assert.equal(a.url, url)
+  assert.equal(a.title, 'Homelessness drops')
+  assert.equal(a.image, 'https://media.npr.org/x.jpg')
+  assert.equal(a.textSource, 'text edition')
+  assert.ok(a.text.length > 300)
+})
