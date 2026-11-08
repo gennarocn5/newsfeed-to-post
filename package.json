@@ -1,0 +1,19 @@
+{
+  "name": "newsfeed-to-post",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Newsfeed-To-Post: turns a newsroom's article feed into ready-to-post social copy and post ideas, sent to Buffer.",
+  "scripts": {
+    "start": "node server.js",
+    "test": "BUFFER_CLIENT_ID=test-client node --test",
+    "lint": "for f in api/*.js lib/*.js public/*.js; do node --check $f || exit 1; done"
+  },
+  "engines": { "node": "22.x" },
+  "dependencies": {
+    "express": "^4.21.2",
+    "fast-xml-parser": "^5.2.0",
+    "iron-session": "^9.0.1",
+    "node-html-parser": "^7.0.1"
+  }
+}

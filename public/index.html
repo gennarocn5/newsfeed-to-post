@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Newsfeed-To-Post · Every new story, ready to post</title>
+  <meta name="description" content="Connect your newsroom's feed. Every new article becomes a ready-to-post social update plus three AI post ideas, sent to your Buffer queue and Ideas board.">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,700;6..72,800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="/" aria-label="Newsfeed-To-Post home">
+      <span class="mark" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span class="brand-name">Newsfeed<span class="dash">-To-</span>Post</span>
+    </a>
+    <div class="account" id="account" hidden>
+      <label class="org">
+        <span class="sr">Organization</span>
+        <select id="org"></select>
+      </label>
+      <span class="who" id="who"></span>
+      <button class="link" id="logout" type="button">Disconnect</button>
+    </div>
+  </header>
+
+  <div class="flash" id="flash" role="status" hidden></div>
+
+  <!-- Signed out -->
+  <main id="welcome" class="welcome" hidden>
+    <section class="hero">
+      <p class="kicker"><span class="dot"></span>For newsrooms, publishers &amp; media brands</p>
+      <h1>Every new story,<br><em>ready to post.</em></h1>
+      <p class="lede">Connect your site's feed. Each article you publish becomes a ready-to-go post built from your own headline and excerpt, plus three fresh angles written by AI from the story itself. One click sends them to your Buffer queue and Ideas board.</p>
+      <div class="cta">
+        <a class="btn primary big" href="/auth/login">Connect Buffer</a>
+        <span class="fine">Works with any RSS, Atom or JSON feed. <a href="/privacy">Privacy</a></span>
+      </div>
+    </section>
+
+    <figure class="demo" aria-label="Example of one article turned into posts">
+      <div class="demo-article">
+        <span class="lbl">The Riverside Ledger · 4m ago</span>
+        <h3>City council approves $40M plan to rebuild the riverfront</h3>
+        <p>The 7–2 vote ends two years of debate. Construction starts in spring, with the new park opening in 2028.</p>
+      </div>
+      <div class="demo-arrow" aria-hidden="true">→</div>
+      <div class="demo-out">
+        <div class="demo-post"><span class="lbl">Article post · queued</span><p><b>City council approves $40M plan to rebuild the riverfront</b> The 7–2 vote ends two years of debate… <u>ledger.example/…</u></p></div>
+        <div class="demo-idea"><span class="lbl">Idea 1 · Stat</span><p>$40 million, 7 votes to 2, and a park by 2028. Here's what changes on the riverfront first.</p></div>
+        <div class="demo-idea"><span class="lbl">Idea 2 · Quote</span><p>"This is the decision we'll be judged on for a generation," one council member said before the vote.</p></div>
+        <div class="demo-idea"><span class="lbl">Idea 3 · Stakes</span><p>Two years of debate are over. What the riverfront rebuild means for the businesses already there.</p></div>
+      </div>
+    </figure>
+
+    <ol class="how">
+      <li><span class="n">01</span><h3>Add your feed</h3><p>Paste your site's address. The app finds your RSS or Atom feed and lists new articles in an inbox.</p></li>
+      <li><span class="n">02</span><h3>Review the posts</h3><p>An article post shaped to each network's limit, plus three AI angles built from a stat, a quote or a person in the story.</p></li>
+      <li><span class="n">03</span><h3>Send to Buffer</h3><p>The article post goes to your queue or drafts. The ideas land on your Ideas board, ready for your team.</p></li>
+    </ol>
+  </main>
+
+  <!-- Signed in -->
+  <main id="app" class="app" hidden>
+    <aside class="rail">
+      <section class="panel feeds">
+        <div class="panel-h">
+          <h2>Feeds</h2>
+          <button class="btn ghost tiny" id="refresh" type="button" title="Check every feed for new articles">Refresh</button>
+        </div>
+        <form id="add-feed" class="add-feed">
+          <label class="sr" for="feed-url">Feed or website address</label>
+          <input id="feed-url" type="text" inputmode="url" placeholder="yoursite.com or a feed URL" autocomplete="off" spellcheck="false">
+          <button class="btn primary" type="submit">Add</button>
+        </form>
+        <div class="try" id="try"><span class="muted small">Try:</span>
+          <button type="button" class="chip" data-feed="https://d1baseball.com/feed/">d1baseball.com</button>
+          <button type="button" class="chip" data-feed="https://feeds.npr.org/1001/rss.xml">NPR News</button>
+          <button type="button" class="chip" data-feed="https://www.theverge.com/rss/index.xml">The Verge</button>
+        </div>
+        <ul class="feed-list" id="feed-list"></ul>
+      </section>
+
+      <section class="panel inbox">
+        <div class="panel-h">
+          <h2>Inbox <i class="count" id="new-count"></i></h2>
+          <div class="seg" role="group" aria-label="Show">
+            <button type="button" data-filter="new" aria-pressed="true">New</button>
+            <button type="button" data-filter="done" aria-pressed="false">Sent</button>
+            <button type="button" data-filter="all" aria-pressed="false">All</button>
+          </div>
+        </div>
+        <form id="open-url" class="open-url">
+          <label class="sr" for="article-url">Open any article by URL</label>
+          <input id="article-url" type="text" inputmode="url" placeholder="Or paste any article URL" autocomplete="off" spellcheck="false">
+          <button class="btn ghost" type="submit">Open</button>
+        </form>
+        <ol class="items" id="items"></ol>
+      </section>
+    </aside>
+
+    <section class="desk" id="desk" aria-live="polite">
+      <div class="empty" id="desk-empty">
+        <div class="empty-mark" aria-hidden="true"><i></i><i></i><i></i></div>
+        <h2>Pick a story from your inbox</h2>
+        <p class="muted">Add your site's feed on the left, then open an article to see its posts.</p>
+      </div>
+
+      <div id="desk-article" hidden>
+        <article class="story" id="story"></article>
+
+        <section class="panel">
+          <div class="panel-h">
+            <div><h2>Channels</h2><p class="muted small">Where the article post goes, and which networks the ideas are written for.</p></div>
+          </div>
+          <div class="channels" id="channels"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-h">
+            <div>
+              <h2><span class="step">1</span>Article post</h2>
+              <p class="muted small">Your headline and excerpt, shaped to each network. Edit anything before sending.</p>
+            </div>
+            <label class="switch"><input type="checkbox" id="send-post" checked><span>Send</span></label>
+          </div>
+          <div class="posts" id="posts"></div>
+          <div class="row gap opts">
+            <label class="field inline">Send as
+              <select id="when">
+                <option value="queue">Next free slot in the queue</option>
+                <option value="draft">Drafts (nothing publishes)</option>
+              </select>
+            </label>
+            <label class="check"><input type="checkbox" id="attach-image" checked> Attach the article's image</label>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-h">
+            <div>
+              <h2><span class="step">2</span>Three post ideas</h2>
+              <p class="muted small" id="ideas-sub">Fresh angles written by AI from the story itself. They're sent to your Buffer Ideas board.</p>
+            </div>
+            <button class="btn primary" id="write-ideas" type="button">Write 3 ideas</button>
+          </div>
+          <div class="fulltext" id="fulltext"></div>
+          <div class="ideas" id="ideas"></div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <div class="sendbar" id="sendbar" hidden>
+    <div class="sendbar-in">
+      <p id="send-summary"></p>
+      <button class="btn primary big" id="send" type="button">Send to Buffer</button>
+    </div>
+  </div>
+
+  <footer class="foot">
+    <span>Built for Buffer Commit 2026 by <a href="https://onfirstagency.com" rel="noopener">On First Agency</a>. Not an official Buffer product.</span>
+    <a href="/privacy">Privacy</a>
+  </footer>
+
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
